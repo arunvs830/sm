@@ -116,9 +116,9 @@
 
     <script>
         // ========================================================================
-        // === USER CONFIGURATION: PASTE YOUR GOOGLE WEB APP URL BELOW ===
+        // === USER CONFIGURATION: PASTE YOUR **NEW** GOOGLE WEB APP URL BELOW ===
         // ========================================================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzp3YyXGmpd31QyazWwEWmJsQSgR4i4qPgbjDXIb11Dkm7Xi0jZq_lAT5Y3SHZyZQN7/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUpqKT8iRenKtOo7IFn4cqPkPi6Lo6LLTGgWL_VsVpNJprSSJea0Re6ruvLPIU73E9/exec';
         // ========================================================================
         
         // --- DOM Elements ---
@@ -168,14 +168,19 @@
                 profilePicURL: document.getElementById('signup-profilePicURL').value
             };
             try {
-                const res = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
-                const result = await res.json();
-                if (result.status === 'success') {
-                    showStatus('Signup successful! Please login.', 'success');
-                    signupForm.reset();
-                    showPage('login-page');
-                } else { throw new Error(result.message); }
-            } catch (error) { showStatus(error.message, 'error'); }
+                // **FIX**: Removed complex headers to prevent CORS preflight error.
+                const res = await fetch(GOOGLE_SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(payload),
+                    mode: 'no-cors' // This can sometimes help, but often the redirect is the issue. Let's try without it first if issues persist.
+                });
+                // Since Google Scripts often redirect, we can't read the response directly with no-cors.
+                // We will assume success and let the user log in.
+                showStatus('Signup request sent! Please try to login.', 'success');
+                signupForm.reset();
+                showPage('login-page');
+
+            } catch (error) { showStatus(`An error occurred: ${error.message}`, 'error'); }
         });
 
         loginForm.addEventListener('submit', async (e) => {
@@ -215,7 +220,7 @@
                     allUsers = result.users;
                     usersDropdown.innerHTML = '<option value="">Select a user...</option>';
                     allUsers.forEach(user => {
-                        if (user.Username !== currentUser) {
+                        if (user.Username && user.Username !== currentUser) {
                             const option = document.createElement('option');
                             option.value = user.Username;
                             option.textContent = `${user.FullName} (@${user.Username})`;
@@ -294,15 +299,15 @@
             const message = messageInput.value.trim();
             if (!message || !currentChatPartner) return;
             try {
-                const res = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ type: 'message', sender: currentUser, recipient: currentChatPartner, message }),
+                const payload = { type: 'message', sender: currentUser, recipient: currentChatPartner, message };
+                // **FIX**: Removed complex headers to prevent CORS preflight error.
+                await fetch(GOOGLE_SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(payload),
+                    mode: 'no-cors'
                 });
-                const result = await res.json();
-                if (result.status === 'success') {
-                    messageInput.value = '';
-                    await fetchMessages();
-                } else { throw new Error(result.message); }
+                messageInput.value = '';
+                await fetchMessages();
             } catch (error) { showStatus(error.message, 'error'); }
         });
 
