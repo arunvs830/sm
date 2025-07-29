@@ -15,56 +15,26 @@
         #chat-feed::-webkit-scrollbar-track { background: #f8fafc; }
         #chat-feed::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         #chat-feed::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .form-input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
-            transition: all 0.2s ease-in-out;
-        }
-        .form-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
-        }
-        .btn-primary {
-            width: 100%;
-            background-color: #2563eb;
-            color: white;
-            font-weight: 600;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            transition: background-color 0.2s;
-        }
+        .form-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; transition: all 0.2s ease-in-out; }
+        .form-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); }
+        .btn-primary { width: 100%; background-color: #2563eb; color: white; font-weight: 600; padding: 0.75rem; border-radius: 0.5rem; transition: background-color 0.2s; }
         .btn-primary:hover { background-color: #1d4ed8; }
         .btn-primary:disabled { background-color: #94a3b8; cursor: not-allowed; }
     </style>
 </head>
 <body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
-
     <div id="app-container" class="w-full max-w-lg mx-auto">
-
-        <!-- ===== LOGIN PAGE ===== -->
+        <!-- HTML structure is the same as before -->
         <div id="login-page" class="bg-white p-8 rounded-2xl shadow-lg">
             <h2 class="text-3xl font-bold text-center text-slate-800 mb-2">Welcome Back!</h2>
             <p class="text-center text-slate-500 mb-8">Please login to your account.</p>
             <form id="login-form" class="space-y-6">
-                <div>
-                    <label for="login-username" class="block text-sm font-medium text-slate-700 mb-1">Username</label>
-                    <input type="text" id="login-username" class="form-input" required>
-                </div>
-                <div>
-                    <label for="login-password" class="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                    <input type="password" id="login-password" class="form-input" required>
-                </div>
+                <div><label for="login-username" class="block text-sm font-medium text-slate-700 mb-1">Username</label><input type="text" id="login-username" class="form-input" required></div>
+                <div><label for="login-password" class="block text-sm font-medium text-slate-700 mb-1">Password</label><input type="password" id="login-password" class="form-input" required></div>
                 <button type="submit" class="btn-primary">Login</button>
             </form>
-            <p class="text-center text-sm text-slate-500 mt-8">
-                No account? <a href="#" id="show-signup-link" class="font-semibold text-blue-600 hover:text-blue-700">Create one now</a>
-            </p>
+            <p class="text-center text-sm text-slate-500 mt-8">No account? <a href="#" id="show-signup-link" class="font-semibold text-blue-600 hover:text-blue-700">Create one now</a></p>
         </div>
-
-        <!-- ===== SIGNUP PAGE ===== -->
         <div id="signup-page" class="bg-white p-8 rounded-2xl shadow-lg hidden">
             <h2 class="text-3xl font-bold text-center text-slate-800 mb-2">Create Your Account</h2>
             <p class="text-center text-slate-500 mb-8">It's quick and easy.</p>
@@ -77,58 +47,29 @@
                 <textarea id="signup-bio" class="form-input" placeholder="Tell us about yourself (optional)" rows="3"></textarea>
                 <button type="submit" class="btn-primary !mt-6">Sign Up</button>
             </form>
-            <p class="text-center text-sm text-slate-500 mt-8">
-                Already have an account? <a href="#" id="show-login-link" class="font-semibold text-blue-600 hover:text-blue-700">Login instead</a>
-            </p>
+            <p class="text-center text-sm text-slate-500 mt-8">Already have an account? <a href="#" id="show-login-link" class="font-semibold text-blue-600 hover:text-blue-700">Login instead</a></p>
         </div>
-
-        <!-- ===== CHAT PAGE ===== -->
         <div id="chat-page" class="bg-white rounded-2xl shadow-lg flex flex-col hidden" style="height: 90vh; max-height: 800px;">
             <header class="border-b border-slate-200 p-4 flex justify-between items-center shrink-0">
-                 <div id="chat-partner-profile" class="flex items-center gap-3 invisible">
-                    <img id="chat-partner-pic" src="" class="w-10 h-10 rounded-full bg-slate-200 object-cover">
-                    <div>
-                        <h2 id="chat-partner-name" class="font-bold text-slate-800"></h2>
-                        <p id="chat-partner-bio" class="text-xs text-slate-500"></p>
-                    </div>
-                </div>
+                 <div id="chat-partner-profile" class="flex items-center gap-3 invisible"><img id="chat-partner-pic" src="" class="w-10 h-10 rounded-full bg-slate-200 object-cover"><div><h2 id="chat-partner-name" class="font-bold text-slate-800"></h2><p id="chat-partner-bio" class="text-xs text-slate-500"></p></div></div>
                 <div class="flex items-center gap-4">
-                    <div id="current-user-profile" class="text-right hidden">
-                        <p id="current-user-name" class="font-semibold text-slate-700"></p>
-                    </div>
+                    <div id="current-user-profile" class="text-right hidden"><p id="current-user-name" class="font-semibold text-slate-700"></p></div>
                     <img id="current-user-pic" src="" class="w-10 h-10 rounded-full bg-slate-200 object-cover hidden">
                     <button id="logout-button" class="text-sm font-medium text-red-500 hover:text-red-700">Logout</button>
                 </div>
             </header>
-            <div class="p-4 border-b border-slate-200 shrink-0">
-                <label for="users-dropdown" class="block text-sm font-medium text-slate-700 mb-1">Select a user to chat with:</label>
-                <select id="users-dropdown" class="form-input"></select>
-            </div>
-            <main id="chat-feed" class="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50">
-                <div id="chat-placeholder" class="flex items-center justify-center h-full">
-                    <p class="text-slate-500">Please select a user to start a conversation.</p>
-                </div>
-            </main>
-            <footer class="p-4 border-t border-slate-200 bg-white shrink-0">
-                <form id="message-form" class="flex items-center gap-3">
-                    <input type="text" id="message-input" placeholder="Type your message..." class="form-input" required disabled>
-                    <button type="submit" class="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-700 disabled:bg-slate-400" disabled>Send</button>
-                </form>
-            </footer>
+            <div class="p-4 border-b border-slate-200 shrink-0"><label for="users-dropdown" class="block text-sm font-medium text-slate-700 mb-1">Select a user to chat with:</label><select id="users-dropdown" class="form-input"></select></div>
+            <main id="chat-feed" class="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50"><div id="chat-placeholder" class="flex items-center justify-center h-full"><p class="text-slate-500">Please select a user to start a conversation.</p></div></main>
+            <footer class="p-4 border-t border-slate-200 bg-white shrink-0"><form id="message-form" class="flex items-center gap-3"><input type="text" id="message-input" placeholder="Type your message..." class="form-input" required disabled><button type="submit" class="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-700 disabled:bg-slate-400" disabled>Send</button></form></footer>
         </div>
-
-        <!-- Status Message Area -->
         <div id="status-message" class="text-center text-sm mt-4 h-5 font-medium"></div>
     </div>
 
     <script>
         // ========================================================================
-        // === USER CONFIGURATION: PASTE YOUR **NEW** GOOGLE WEB APP URL BELOW ===
-        // ========================================================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyM425QlxkUlx_dA3wlr-xSbOLIXrSaWDVHsvCXZ9cimecjdESSIkRGlF5eaSRqH8dm/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHwN1tUKpydtEUu8V79p9o8tjgB57VpPH3DDBNOo0Hjz8Nv3rKByVCq80Q2EL8nuII/exec';
         // ========================================================================
         
-        // --- DOM Elements ---
         const loginPage = document.getElementById('login-page');
         const signupPage = document.getElementById('signup-page');
         const chatPage = document.getElementById('chat-page');
@@ -151,13 +92,11 @@
         const currentUserName = document.getElementById('current-user-name');
         const currentUserPic = document.getElementById('current-user-pic');
 
-        // --- App State ---
         let currentUser = null;
         let currentChatPartner = null;
         let allUsers = [];
         let messageFetchInterval = null;
 
-        // --- Page Navigation ---
         function showPage(pageId) {
             [loginPage, signupPage, chatPage].forEach(page => page.classList.add('hidden'));
             document.getElementById(pageId).classList.remove('hidden');
@@ -165,16 +104,12 @@
         showSignupLink.addEventListener('click', (e) => { e.preventDefault(); showPage('signup-page'); });
         showLoginLink.addEventListener('click', (e) => { e.preventDefault(); showPage('login-page'); });
 
-        // --- Authentication ---
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitButton = signupForm.querySelector('button');
             submitButton.disabled = true;
             showStatus('Signing up...', 'info');
-
-            // **FIX**: Using FormData to send POST requests. This is a "simple request"
-            // and avoids the CORS preflight (`OPTIONS`) request that causes errors.
-            const formData = new FormData();
+            const formData = new FormData(signupForm);
             formData.append('type', 'signup');
             formData.append('fullName', document.getElementById('signup-fullName').value);
             formData.append('email', document.getElementById('signup-email').value);
@@ -184,18 +119,13 @@
             formData.append('profilePicURL', document.getElementById('signup-profilePicURL').value);
             
             try {
-                const res = await fetch(GOOGLE_SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: formData,
-                });
+                const res = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
                 const result = await res.json();
                 if (result.status === 'success') {
                     showStatus('Signup successful! Please login.', 'success');
                     signupForm.reset();
                     showPage('login-page');
-                } else {
-                    throw new Error(result.message);
-                }
+                } else { throw new Error(result.message); }
             } catch (error) { 
                 showStatus(`Signup failed: ${error.message}`, 'error');
             } finally {
@@ -203,29 +133,62 @@
             }
         });
 
+        // --- START DEBUGGING LOGIN ---
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitButton = loginForm.querySelector('button');
             submitButton.disabled = true;
             showStatus('Logging in...', 'info');
 
+            const formData = new FormData();
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
+            formData.append('type', 'login');
+            formData.append('username', username);
+            formData.append('password', password);
+
+            console.log("--- FRONTEND: ATTEMPTING LOGIN ---");
+            console.log("Sending to URL:", GOOGLE_SCRIPT_URL);
+            console.log("Sending username:", username);
+            console.log("Sending password:", password);
+
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=login&username=${username}&password=${password}`);
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                console.log("Frontend: Received response object from server:", res);
+                if (!res.ok) {
+                    console.error("Frontend: Network response was not ok. Status:", res.status, res.statusText);
+                }
+                
+                // Clone the response to read it twice (once as text, once as json)
+                const resClone = res.clone();
+                const rawText = await resClone.text();
+                console.log("Frontend: Raw response text from server:", rawText);
+
                 const result = await res.json();
+                console.log("Frontend: Parsed JSON result:", result);
+
                 if (result.status === 'success') {
+                    console.log("Frontend: Login success confirmed.");
                     currentUser = username;
-                    sessionStorage.setItem('currentUser', username);
+                    sessionStorage.setItem('currentUser', currentUser);
                     loginForm.reset();
                     await initializeChatPage();
-                } else { throw new Error(result.message); }
+                } else { 
+                    throw new Error(result.message); 
+                }
             } catch (error) { 
-                showStatus(`Login failed: ${error.message}`, 'error');
+                console.error("--- FRONTEND: CATCH BLOCK ERROR ---");
+                console.error(error);
+                showStatus(`Login failed: ${error.message}. Check console.`, 'error');
             } finally {
                 submitButton.disabled = false;
             }
         });
+        // --- END DEBUGGING LOGIN ---
 
         logoutButton.addEventListener('click', () => {
             currentUser = null;
@@ -236,12 +199,10 @@
             showPage('login-page');
         });
 
-        // --- Chat Functionality ---
         async function initializeChatPage() {
             showPage('chat-page');
             showStatus('Loading user data...', 'info');
             await populateUsersDropdown();
-            
             const userData = allUsers.find(u => u.Username === currentUser);
             if (userData) {
                 currentUserName.textContent = userData.FullName;
@@ -250,7 +211,7 @@
                 currentUserProfile.classList.remove('hidden');
                 currentUserPic.classList.remove('hidden');
             }
-            showStatus('', 'info'); // Clear status
+            showStatus('', 'info');
         }
 
         async function populateUsersDropdown() {
@@ -260,8 +221,7 @@
                 if (result.status === 'success') {
                     allUsers = result.users;
                     const otherUsers = allUsers.filter(user => user.Username && user.Username !== currentUser);
-
-                    usersDropdown.innerHTML = ''; // Clear previous options
+                    usersDropdown.innerHTML = '';
                     if (otherUsers.length > 0) {
                         usersDropdown.innerHTML = '<option value="">Select a user...</option>';
                         otherUsers.forEach(user => {
@@ -280,11 +240,9 @@
         usersDropdown.addEventListener('change', () => {
             currentChatPartner = usersDropdown.value;
             if (messageFetchInterval) clearInterval(messageFetchInterval);
-
             if (currentChatPartner) {
                 const partnerData = allUsers.find(u => u.Username === currentChatPartner);
                 if (!partnerData) return;
-
                 chatPartnerPic.src = partnerData.ProfilePicURL || `https://placehold.co/40x40/e2e8f0/64748b?text=${partnerData.Username.charAt(0).toUpperCase()}`;
                 chatPartnerPic.onerror = () => { chatPartnerPic.src = `https://placehold.co/40x40/e2e8f0/64748b?text=${partnerData.Username.charAt(0).toUpperCase()}`; };
                 chatPartnerName.textContent = partnerData.FullName;
@@ -324,20 +282,13 @@
             const currentUserData = allUsers.find(u => u.Username === currentUser);
             const partnerUserData = allUsers.find(u => u.Username === currentChatPartner);
             if (!currentUserData || !partnerUserData) return;
-
             messages.forEach(msg => {
                 const isCurrentUser = msg.Sender === currentUser;
                 const senderData = isCurrentUser ? currentUserData : partnerUserData;
                 const profilePic = senderData.ProfilePicURL || `https://placehold.co/40x40/e2e8f0/64748b?text=${senderData.Username.charAt(0).toUpperCase()}`;
-
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `flex items-end gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''}`;
-                messageDiv.innerHTML = `
-                    <img src="${profilePic}" class="w-8 h-8 rounded-full bg-slate-200 object-cover" onerror="this.src='https://placehold.co/40x40/e2e8f0/64748b?text=${senderData.Username.charAt(0).toUpperCase()}'">
-                    <div class="max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${isCurrentUser ? 'bg-blue-500 text-white rounded-br-lg' : 'bg-slate-200 text-slate-800 rounded-bl-lg'}">
-                        <p>${msg.Message}</p>
-                    </div>
-                `;
+                messageDiv.innerHTML = `<img src="${profilePic}" class="w-8 h-8 rounded-full bg-slate-200 object-cover" onerror="this.src='https://placehold.co/40x40/e2e8f0/64748b?text=${senderData.Username.charAt(0).toUpperCase()}'"><div class="max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${isCurrentUser ? 'bg-blue-500 text-white rounded-br-lg' : 'bg-slate-200 text-slate-800 rounded-bl-lg'}"><p>${msg.Message}</p></div>`;
                 chatFeed.appendChild(messageDiv);
             });
             chatFeed.scrollTop = chatFeed.scrollHeight;
@@ -347,43 +298,28 @@
             e.preventDefault();
             const message = messageInput.value.trim();
             if (!message || !currentChatPartner) return;
-            
             const formData = new FormData();
             formData.append('type', 'message');
             formData.append('sender', currentUser);
             formData.append('recipient', currentChatPartner);
             formData.append('message', message);
-            
             try {
-                const res = await fetch(GOOGLE_SCRIPT_URL, { 
-                    method: 'POST', 
-                    body: formData,
-                });
+                const res = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
                 const result = await res.json();
                 if (result.status === 'success') {
                     messageInput.value = '';
                     await fetchMessages();
-                } else {
-                    throw new Error(result.message);
-                }
+                } else { throw new Error(result.message); }
             } catch (error) { showStatus(error.message, 'error'); }
         });
 
-        // --- Utility Functions ---
         function showStatus(message, type) {
             statusMessage.textContent = message;
-            const colors = {
-                success: 'text-green-600',
-                error: 'text-red-600',
-                info: 'text-slate-600'
-            }
+            const colors = { success: 'text-green-600', error: 'text-red-600', info: 'text-slate-600' }
             statusMessage.className = `text-center text-sm mt-4 h-5 font-medium ${colors[type] || 'text-slate-600'}`;
-            if(type !== 'info') {
-                setTimeout(() => statusMessage.textContent = '', 4000);
-            }
+            if(type !== 'info') { setTimeout(() => statusMessage.textContent = '', 4000); }
         }
 
-        // --- Initial Load ---
         function onAppLoad() {
             const loggedInUser = sessionStorage.getItem('currentUser');
             if (loggedInUser) {
@@ -393,7 +329,6 @@
                 showPage('login-page');
             }
         }
-
         onAppLoad();
     </script>
 </body>
