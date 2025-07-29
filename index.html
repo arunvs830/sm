@@ -67,7 +67,7 @@
 
     <script>
         // ========================================================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHwN1tUKpydtEUu8V79p9o8tjgB57VpPH3DDBNOo0Hjz8Nv3rKByVCq80Q2EL8nuII/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznKhF-XCfq987wPDvRqNb0lGNawWN7kQr9inJcBtDzF8_VSyo_9-yoBEWvuB1OzOT2/exec';
         // ========================================================================
         
         const loginPage = document.getElementById('login-page');
@@ -109,7 +109,7 @@
             const submitButton = signupForm.querySelector('button');
             submitButton.disabled = true;
             showStatus('Signing up...', 'info');
-            const formData = new FormData(signupForm);
+            const formData = new FormData();
             formData.append('type', 'signup');
             formData.append('fullName', document.getElementById('signup-fullName').value);
             formData.append('email', document.getElementById('signup-email').value);
@@ -133,46 +133,25 @@
             }
         });
 
-        // --- START DEBUGGING LOGIN ---
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitButton = loginForm.querySelector('button');
             submitButton.disabled = true;
             showStatus('Logging in...', 'info');
 
-            const formData = new FormData();
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
-            formData.append('type', 'login');
-            formData.append('username', username);
-            formData.append('password', password);
-
-            console.log("--- FRONTEND: ATTEMPTING LOGIN ---");
-            console.log("Sending to URL:", GOOGLE_SCRIPT_URL);
-            console.log("Sending username:", username);
-            console.log("Sending password:", password);
-
+            
             try {
-                const res = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                console.log("Frontend: Received response object from server:", res);
+                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=login&username=${username}&password=${password}`);
+                
                 if (!res.ok) {
-                    console.error("Frontend: Network response was not ok. Status:", res.status, res.statusText);
+                    throw new Error(`Network response was not ok. Status: ${res.status}`);
                 }
                 
-                // Clone the response to read it twice (once as text, once as json)
-                const resClone = res.clone();
-                const rawText = await resClone.text();
-                console.log("Frontend: Raw response text from server:", rawText);
-
                 const result = await res.json();
-                console.log("Frontend: Parsed JSON result:", result);
 
                 if (result.status === 'success') {
-                    console.log("Frontend: Login success confirmed.");
                     currentUser = username;
                     sessionStorage.setItem('currentUser', currentUser);
                     loginForm.reset();
@@ -181,14 +160,11 @@
                     throw new Error(result.message); 
                 }
             } catch (error) { 
-                console.error("--- FRONTEND: CATCH BLOCK ERROR ---");
-                console.error(error);
-                showStatus(`Login failed: ${error.message}. Check console.`, 'error');
+                showStatus(`Login failed: ${error.message}`, 'error');
             } finally {
                 submitButton.disabled = false;
             }
         });
-        // --- END DEBUGGING LOGIN ---
 
         logoutButton.addEventListener('click', () => {
             currentUser = null;
