@@ -67,7 +67,7 @@
 
     <script>
         // ========================================================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznKhF-XCfq987wPDvRqNb0lGNawWN7kQr9inJcBtDzF8_VSyo_9-yoBEWvuB1OzOT2/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxp7LV7siNuVgJ8FXSYMKe5RdLw1vrMBhn2VadHOpe-_2kXO09bbAxBnzpHnFjnDQvl/exec';
         // ========================================================================
         
         const loginPage = document.getElementById('login-page');
@@ -103,6 +103,24 @@
         }
         showSignupLink.addEventListener('click', (e) => { e.preventDefault(); showPage('signup-page'); });
         showLoginLink.addEventListener('click', (e) => { e.preventDefault(); showPage('login-page'); });
+
+        // ** JSONP fetcher function **
+        // This is the core of the new fix. It bypasses CORS for GET requests.
+        function jsonpFetch(url) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+                window[callbackName] = (data) => {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    resolve(data);
+                };
+
+                const script = document.createElement('script');
+                script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
+                script.onerror = reject;
+                document.body.appendChild(script);
+            });
+        }
 
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -143,13 +161,8 @@
             const password = document.getElementById('login-password').value;
             
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=login&username=${username}&password=${password}`);
-                
-                if (!res.ok) {
-                    throw new Error(`Network response was not ok. Status: ${res.status}`);
-                }
-                
-                const result = await res.json();
+                const url = `${GOOGLE_SCRIPT_URL}?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+                const result = await jsonpFetch(url);
 
                 if (result.status === 'success') {
                     currentUser = username;
@@ -192,8 +205,8 @@
 
         async function populateUsersDropdown() {
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getUsers`);
-                const result = await res.json();
+                const url = `${GOOGLE_SCRIPT_URL}?action=getUsers`;
+                const result = await jsonpFetch(url);
                 if (result.status === 'success') {
                     allUsers = result.users;
                     const otherUsers = allUsers.filter(user => user.Username && user.Username !== currentUser);
@@ -241,8 +254,8 @@
         async function fetchMessages() {
             if (!currentUser || !currentChatPartner) return;
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getMessages&currentUser=${currentUser}&otherUser=${currentChatPartner}`);
-                const result = await res.json();
+                const url = `${GOOGLE_SCRIPT_URL}?action=getMessages&currentUser=${currentUser}&otherUser=${currentChatPartner}`;
+                const result = await jsonpFetch(url);
                 if (result.status === 'success') {
                     displayMessages(result.messages);
                 } else { throw new Error(result.message); }
