@@ -125,7 +125,7 @@
         // ========================================================================
         // === USER CONFIGURATION: PASTE YOUR **NEW** GOOGLE WEB APP URL BELOW ===
         // ========================================================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAhuPZrNWhBILvl8mAj73ZNRvsj-zJ6r1-ToU7qQIZh8_kyuAbAWpmdTf1chLxQlL9/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx0yAuDMk_HpONOtZ18K1661JY22i5cVIx-rSVQwK2B9YxgAtgb-teGuLlxLjtIr_72/exec';
         // ========================================================================
         
         // --- DOM Elements ---
@@ -170,36 +170,34 @@
             e.preventDefault();
             const submitButton = signupForm.querySelector('button');
             submitButton.disabled = true;
-            showStatus('Sending signup request...', 'info');
+            showStatus('Signing up...', 'info');
 
-            const payload = {
-                type: 'signup',
-                fullName: document.getElementById('signup-fullName').value,
-                email: document.getElementById('signup-email').value,
-                username: document.getElementById('signup-username').value,
-                password: document.getElementById('signup-password').value,
-                bio: document.getElementById('signup-bio').value,
-                profilePicURL: document.getElementById('signup-profilePicURL').value
-            };
+            // **FIX**: Using FormData to send POST requests. This is a "simple request"
+            // and avoids the CORS preflight (`OPTIONS`) request that causes errors.
+            const formData = new FormData();
+            formData.append('type', 'signup');
+            formData.append('fullName', document.getElementById('signup-fullName').value);
+            formData.append('email', document.getElementById('signup-email').value);
+            formData.append('username', document.getElementById('signup-username').value);
+            formData.append('password', document.getElementById('signup-password').value);
+            formData.append('bio', document.getElementById('signup-bio').value);
+            formData.append('profilePicURL', document.getElementById('signup-profilePicURL').value);
+            
             try {
-                // **FIX**: Using `no-cors` mode to bypass redirect/CORS issues.
-                // We cannot read the response, so we'll assume success.
-                await fetch(GOOGLE_SCRIPT_URL, { 
+                const res = await fetch(GOOGLE_SCRIPT_URL, { 
                     method: 'POST', 
-                    mode: 'no-cors', // This is the key change
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                    redirect: 'follow'
+                    body: formData,
                 });
-                
-                showStatus('Signup request sent! Please try to login.', 'success');
-                signupForm.reset();
-                showPage('login-page');
-
+                const result = await res.json();
+                if (result.status === 'success') {
+                    showStatus('Signup successful! Please login.', 'success');
+                    signupForm.reset();
+                    showPage('login-page');
+                } else {
+                    throw new Error(result.message);
+                }
             } catch (error) { 
-                // This catch block might not be triggered in 'no-cors' mode for network errors,
-                // but it's good practice to keep it.
-                showStatus(`An unexpected error occurred.`, 'error');
+                showStatus(`Signup failed: ${error.message}`, 'error');
             } finally {
                 submitButton.disabled = false;
             }
@@ -214,27 +212,16 @@
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
             try {
-                // GET requests are simpler and less likely to fail CORS checks
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=login&username=${username}&password=${password}`, {
-                    redirect: 'follow'
-                });
-                
-                if (!res.ok) {
-                    throw new Error(`Network response was not ok: ${res.statusText}`);
-                }
-
+                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=login&username=${username}&password=${password}`);
                 const result = await res.json();
                 if (result.status === 'success') {
                     currentUser = username;
                     sessionStorage.setItem('currentUser', username);
                     loginForm.reset();
                     await initializeChatPage();
-                } else { 
-                    throw new Error(result.message || 'Login failed.'); 
-                }
+                } else { throw new Error(result.message); }
             } catch (error) { 
-                console.error("Login Error Details:", error);
-                showStatus(`Login failed: ${error.message}. Check console for details.`, 'error');
+                showStatus(`Login failed: ${error.message}`, 'error');
             } finally {
                 submitButton.disabled = false;
             }
@@ -268,8 +255,7 @@
 
         async function populateUsersDropdown() {
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getUsers`, { redirect: 'follow' });
-                if (!res.ok) throw new Error(`Network response was not ok: ${res.statusText}`);
+                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getUsers`);
                 const result = await res.json();
                 if (result.status === 'success') {
                     allUsers = result.users;
@@ -288,10 +274,7 @@
                         usersDropdown.innerHTML = '<option value="">No other users to chat with</option>';
                     }
                 } else { throw new Error(result.message); }
-            } catch (error) { 
-                console.error("Get Users Error:", error);
-                showStatus(`Could not load users: ${error.message}`, 'error'); 
-            }
+            } catch (error) { showStatus(error.message, 'error'); }
         }
 
         usersDropdown.addEventListener('change', () => {
@@ -324,8 +307,7 @@
         async function fetchMessages() {
             if (!currentUser || !currentChatPartner) return;
             try {
-                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getMessages&currentUser=${currentUser}&otherUser=${currentChatPartner}`, { redirect: 'follow' });
-                if (!res.ok) throw new Error(`Network response was not ok: ${res.statusText}`);
+                const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getMessages&currentUser=${currentUser}&otherUser=${currentChatPartner}`);
                 const result = await res.json();
                 if (result.status === 'success') {
                     displayMessages(result.messages);
@@ -365,20 +347,26 @@
             e.preventDefault();
             const message = messageInput.value.trim();
             if (!message || !currentChatPartner) return;
+            
+            const formData = new FormData();
+            formData.append('type', 'message');
+            formData.append('sender', currentUser);
+            formData.append('recipient', currentChatPartner);
+            formData.append('message', message);
+            
             try {
-                const payload = { type: 'message', sender: currentUser, recipient: currentChatPartner, message };
-                // Using 'no-cors' mode as a workaround for POST requests
-                await fetch(GOOGLE_SCRIPT_URL, { 
+                const res = await fetch(GOOGLE_SCRIPT_URL, { 
                     method: 'POST', 
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                    redirect: 'follow'
+                    body: formData,
                 });
-                messageInput.value = '';
-                // Immediately fetch messages to give optimistic feedback
-                await fetchMessages();
-            } catch (error) { showStatus(`Could not send message: ${error.message}`, 'error'); }
+                const result = await res.json();
+                if (result.status === 'success') {
+                    messageInput.value = '';
+                    await fetchMessages();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) { showStatus(error.message, 'error'); }
         });
 
         // --- Utility Functions ---
