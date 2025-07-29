@@ -37,6 +37,7 @@
             transition: background-color 0.2s;
         }
         .btn-primary:hover { background-color: #1d4ed8; }
+        .btn-primary:disabled { background-color: #94a3b8; cursor: not-allowed; }
     </style>
 </head>
 <body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
@@ -118,7 +119,7 @@
         // ========================================================================
         // === USER CONFIGURATION: PASTE YOUR **NEW** GOOGLE WEB APP URL BELOW ===
         // ========================================================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUpqKT8iRenKtOo7IFn4cqPkPi6Lo6LLTGgWL_VsVpNJprSSJea0Re6ruvLPIU73E9/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAhuPZrNWhBILvl8mAj73ZNRvsj-zJ6r1-ToU7qQIZh8_kyuAbAWpmdTf1chLxQlL9/exec';
         // ========================================================================
         
         // --- DOM Elements ---
@@ -158,6 +159,10 @@
         // --- Authentication ---
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const submitButton = signupForm.querySelector('button');
+            submitButton.disabled = true;
+            showStatus('Signing up...', 'info');
+
             const payload = {
                 type: 'signup',
                 fullName: document.getElementById('signup-fullName').value,
@@ -168,23 +173,34 @@
                 profilePicURL: document.getElementById('signup-profilePicURL').value
             };
             try {
-                // **FIX**: Removed complex headers to prevent CORS preflight error.
                 const res = await fetch(GOOGLE_SCRIPT_URL, { 
                     method: 'POST', 
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify(payload),
-                    mode: 'no-cors' // This can sometimes help, but often the redirect is the issue. Let's try without it first if issues persist.
                 });
-                // Since Google Scripts often redirect, we can't read the response directly with no-cors.
-                // We will assume success and let the user log in.
-                showStatus('Signup request sent! Please try to login.', 'success');
-                signupForm.reset();
-                showPage('login-page');
-
-            } catch (error) { showStatus(`An error occurred: ${error.message}`, 'error'); }
+                const result = await res.json();
+                if (result.status === 'success') {
+                    showStatus('Signup successful! Please login.', 'success');
+                    signupForm.reset();
+                    showPage('login-page');
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) { 
+                showStatus(`Signup failed: ${error.message}`, 'error');
+            } finally {
+                submitButton.disabled = false;
+            }
         });
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const submitButton = loginForm.querySelector('button');
+            submitButton.disabled = true;
+            showStatus('Logging in...', 'info');
+
             const username = document.getElementById('login-username').value;
             const password = document.getElementById('login-password').value;
             try {
@@ -196,7 +212,11 @@
                     loginForm.reset();
                     await initializeChatPage();
                 } else { throw new Error(result.message); }
-            } catch (error) { showStatus(error.message, 'error'); }
+            } catch (error) { 
+                showStatus(`Login failed: ${error.message}`, 'error');
+            } finally {
+                submitButton.disabled = false;
+            }
         });
 
         logoutButton.addEventListener('click', () => {
@@ -300,22 +320,35 @@
             if (!message || !currentChatPartner) return;
             try {
                 const payload = { type: 'message', sender: currentUser, recipient: currentChatPartner, message };
-                // **FIX**: Removed complex headers to prevent CORS preflight error.
-                await fetch(GOOGLE_SCRIPT_URL, { 
+                const res = await fetch(GOOGLE_SCRIPT_URL, { 
                     method: 'POST', 
-                    body: JSON.stringify(payload),
-                    mode: 'no-cors'
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
                 });
-                messageInput.value = '';
-                await fetchMessages();
+                const result = await res.json();
+                if (result.status === 'success') {
+                    messageInput.value = '';
+                    await fetchMessages();
+                } else {
+                    throw new Error(result.message);
+                }
             } catch (error) { showStatus(error.message, 'error'); }
         });
 
         // --- Utility Functions ---
         function showStatus(message, type) {
             statusMessage.textContent = message;
-            statusMessage.className = `text-center text-sm mt-4 h-5 font-medium ${type === 'success' ? 'text-green-600' : 'text-red-600'}`;
-            setTimeout(() => statusMessage.textContent = '', 4000);
+            const colors = {
+                success: 'text-green-600',
+                error: 'text-red-600',
+                info: 'text-slate-600'
+            }
+            statusMessage.className = `text-center text-sm mt-4 h-5 font-medium ${colors[type] || 'text-slate-600'}`;
+            if(type !== 'info') {
+                setTimeout(() => statusMessage.textContent = '', 4000);
+            }
         }
 
         // --- Initial Load ---
