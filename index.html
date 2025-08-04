@@ -3,322 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prototype Messenger</title>
+    <title>Real-time Chat App</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .hidden { display: none; }
-        #chat-feed::-webkit-scrollbar { width: 8px; }
-        #chat-feed::-webkit-scrollbar-track { background: #f8fafc; }
-        #chat-feed::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        #chat-feed::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .form-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; transition: all 0.2s ease-in-out; }
-        .form-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); }
-        .btn-primary { width: 100%; background-color: #2563eb; color: white; font-weight: 600; padding: 0.75rem; border-radius: 0.5rem; transition: background-color 0.2s; }
-        .btn-primary:hover { background-color: #1d4ed8; }
-        .btn-primary:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        #messages::-webkit-scrollbar,
+        #user-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        #messages::-webkit-scrollbar-track,
+        #user-list::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        #messages::-webkit-scrollbar-thumb,
+        #user-list::-webkit-scrollbar-thumb {
+            background-color: #94a3b8;
+            border-radius: 10px;
+            border: 3px solid #f1f5f9;
+        }
+        .user-item.active {
+            background-color: #e0f2fe; /* light-blue */
+            border-right: 4px solid #3b82f6; /* blue-500 */
+        }
     </style>
 </head>
-<body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
-    <div id="app-container" class="w-full max-w-lg mx-auto">
-        <!-- HTML structure is the same as before -->
-        <div id="login-page" class="bg-white p-8 rounded-2xl shadow-lg">
-            <h2 class="text-3xl font-bold text-center text-slate-800 mb-2">Welcome Back!</h2>
-            <p class="text-center text-slate-500 mb-8">Please login to your account.</p>
-            <form id="login-form" class="space-y-6">
-                <div><label for="login-username" class="block text-sm font-medium text-slate-700 mb-1">Username</label><input type="text" id="login-username" class="form-input" required></div>
-                <div><label for="login-password" class="block text-sm font-medium text-slate-700 mb-1">Password</label><input type="password" id="login-password" class="form-input" required></div>
-                <button type="submit" class="btn-primary">Login</button>
-            </form>
-            <p class="text-center text-sm text-slate-500 mt-8">No account? <a href="#" id="show-signup-link" class="font-semibold text-blue-600 hover:text-blue-700">Create one now</a></p>
-        </div>
-        <div id="signup-page" class="bg-white p-8 rounded-2xl shadow-lg hidden">
-            <h2 class="text-3xl font-bold text-center text-slate-800 mb-2">Create Your Account</h2>
-            <p class="text-center text-slate-500 mb-8">It's quick and easy.</p>
-            <form id="signup-form" class="space-y-4">
-                <input type="text" id="signup-fullName" class="form-input" placeholder="Full Name" required>
-                <input type="email" id="signup-email" class="form-input" placeholder="Email Address" required>
-                <input type="text" id="signup-username" class="form-input" placeholder="Choose a Username" required>
-                <input type="password" id="signup-password" class="form-input" placeholder="Create a Password" required>
-                <input type="url" id="signup-profilePicURL" class="form-input" placeholder="Profile Picture URL (optional)">
-                <textarea id="signup-bio" class="form-input" placeholder="Tell us about yourself (optional)" rows="3"></textarea>
-                <button type="submit" class="btn-primary !mt-6">Sign Up</button>
-            </form>
-            <p class="text-center text-sm text-slate-500 mt-8">Already have an account? <a href="#" id="show-login-link" class="font-semibold text-blue-600 hover:text-blue-700">Login instead</a></p>
-        </div>
-        <div id="chat-page" class="bg-white rounded-2xl shadow-lg flex flex-col hidden" style="height: 90vh; max-height: 800px;">
-            <header class="border-b border-slate-200 p-4 flex justify-between items-center shrink-0">
-                 <div id="chat-partner-profile" class="flex items-center gap-3 invisible"><img id="chat-partner-pic" src="" class="w-10 h-10 rounded-full bg-slate-200 object-cover"><div><h2 id="chat-partner-name" class="font-bold text-slate-800"></h2><p id="chat-partner-bio" class="text-xs text-slate-500"></p></div></div>
-                <div class="flex items-center gap-4">
-                    <div id="current-user-profile" class="text-right hidden"><p id="current-user-name" class="font-semibold text-slate-700"></p></div>
-                    <img id="current-user-pic" src="" class="w-10 h-10 rounded-full bg-slate-200 object-cover hidden">
-                    <button id="logout-button" class="text-sm font-medium text-red-500 hover:text-red-700">Logout</button>
+<body class="bg-gray-200">
+
+    <div id="app-container" class="w-full h-screen flex bg-white shadow-2xl overflow-hidden hidden">
+        <!-- Sidebar with User List -->
+        <aside class="w-full md:w-1/3 lg:w-1/4 flex flex-col bg-slate-50 border-r border-slate-200">
+            <!-- Sidebar Header -->
+            <header class="p-4 border-b border-slate-200">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800">Chats</h2>
+                        <p id="current-username" class="text-sm text-slate-500"></p>
+                    </div>
+                    <button id="logout-button" class="text-slate-500 hover:text-blue-600" title="Logout">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </button>
                 </div>
+                 <input type="text" id="search-users" placeholder="Search or start new chat..." class="w-full mt-3 p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </header>
-            <div class="p-4 border-b border-slate-200 shrink-0"><label for="users-dropdown" class="block text-sm font-medium text-slate-700 mb-1">Select a user to chat with:</label><select id="users-dropdown" class="form-input"></select></div>
-            <main id="chat-feed" class="flex-grow overflow-y-auto p-4 space-y-4 bg-slate-50"><div id="chat-placeholder" class="flex items-center justify-center h-full"><p class="text-slate-500">Please select a user to start a conversation.</p></div></main>
-            <footer class="p-4 border-t border-slate-200 bg-white shrink-0"><form id="message-form" class="flex items-center gap-3"><input type="text" id="message-input" placeholder="Type your message..." class="form-input" required disabled><button type="submit" class="bg-blue-600 text-white font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-700 disabled:bg-slate-400" disabled>Send</button></form></footer>
+            
+            <!-- User List -->
+            <div id="user-list" class="flex-1 overflow-y-auto">
+                <!-- User items will be dynamically inserted here -->
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <div id="chat-area" class="w-full md:w-2/3 lg:w-3/4 flex flex-col bg-slate-100 hidden">
+            <!-- Chat Header -->
+            <header id="chat-header" class="bg-white text-slate-800 p-4 shadow-sm z-10 flex items-center gap-4">
+                <!-- Chat partner info will be dynamically inserted here -->
+            </header>
+
+            <!-- Messages Area -->
+            <main id="messages" class="flex-1 p-6 space-y-6 overflow-y-auto">
+                <!-- Messages will be dynamically inserted here -->
+            </main>
+
+            <!-- Message Input Form -->
+            <footer class="bg-white p-4 border-t border-gray-200">
+                <form id="message-form" class="flex items-center gap-4">
+                    <input
+                        id="message-input"
+                        type="text"
+                        placeholder="Type your message..."
+                        autocomplete="off"
+                        class="flex-1 p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    />
+                    <button
+                        type="submit"
+                        class="bg-blue-600 text-white rounded-full p-3 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-transform duration-150 ease-in-out transform hover:scale-105"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </form>
+            </footer>
         </div>
-        <div id="status-message" class="text-center text-sm mt-4 h-5 font-medium"></div>
+        
+        <!-- Placeholder for when no chat is selected -->
+        <div id="placeholder-area" class="w-full md:w-2/3 lg:w-3/4 flex flex-col items-center justify-center bg-slate-100">
+             <div class="text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 mx-auto"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                <h2 class="mt-4 text-2xl font-semibold text-slate-600">Select a chat to start messaging</h2>
+                <p class="mt-2 text-slate-500">Your conversations will appear here.</p>
+            </div>
+        </div>
     </div>
 
     <script>
-        // ========================================================================
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxp7LV7siNuVgJ8FXSYMKe5RdLw1vrMBhn2VadHOpe-_2kXO09bbAxBnzpHnFjnDQvl/exec';
-        // ========================================================================
-        
-        const loginPage = document.getElementById('login-page');
-        const signupPage = document.getElementById('signup-page');
-        const chatPage = document.getElementById('chat-page');
-        const loginForm = document.getElementById('login-form');
-        const signupForm = document.getElementById('signup-form');
-        const messageForm = document.getElementById('message-form');
-        const showSignupLink = document.getElementById('show-signup-link');
-        const showLoginLink = document.getElementById('show-login-link');
-        const logoutButton = document.getElementById('logout-button');
-        const usersDropdown = document.getElementById('users-dropdown');
-        const chatFeed = document.getElementById('chat-feed');
-        const messageInput = document.getElementById('message-input');
-        const statusMessage = document.getElementById('status-message');
-        const chatPartnerProfile = document.getElementById('chat-partner-profile');
-        const chatPartnerPic = document.getElementById('chat-partner-pic');
-        const chatPartnerName = document.getElementById('chat-partner-name');
-        const chatPartnerBio = document.getElementById('chat-partner-bio');
-        const chatPlaceholder = document.getElementById('chat-placeholder');
-        const currentUserProfile = document.getElementById('current-user-profile');
-        const currentUserName = document.getElementById('current-user-name');
-        const currentUserPic = document.getElementById('current-user-pic');
+        // --- Supabase Client Initialization ---
+        const supabaseUrl = 'https://yrxoojrgcgunvdauxsjo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyeG9vanJnY2d1bnZkYXV4c2pvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyOTIzMDQsImV4cCI6MjA2OTg2ODMwNH0.KXvbmzxifqEBs6k-mWIUdm2ep7ziYldqhuETaGLx1Zs';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+        // --- DOM Elements ---
+        const appContainer = document.getElementById('app-container');
+        const userList = document.getElementById('user-list');
+        const chatArea = document.getElementById('chat-area');
+        const placeholderArea = document.getElementById('placeholder-area');
+        const chatHeader = document.getElementById('chat-header');
+        const messagesContainer = document.getElementById('messages');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const currentUsernameEl = document.getElementById('current-username');
+        const logoutButton = document.getElementById('logout-button');
+        const searchInput = document.getElementById('search-users');
+
+        // --- App State ---
         let currentUser = null;
         let currentChatPartner = null;
-        let allUsers = [];
-        let messageFetchInterval = null;
+        let messageSubscription = null;
+        let allUsers = []; // Cache all users to avoid re-fetching
 
-        function showPage(pageId) {
-            [loginPage, signupPage, chatPage].forEach(page => page.classList.add('hidden'));
-            document.getElementById(pageId).classList.remove('hidden');
-        }
-        showSignupLink.addEventListener('click', (e) => { e.preventDefault(); showPage('signup-page'); });
-        showLoginLink.addEventListener('click', (e) => { e.preventDefault(); showPage('login-page'); });
+        // --- Main Function ---
+        async function main() {
+            await handleAuthentication();
+            if (!currentUser) return;
 
-        // ** JSONP fetcher function **
-        // This is the core of the new fix. It bypasses CORS for GET requests.
-        function jsonpFetch(url) {
-            return new Promise((resolve, reject) => {
-                const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-                window[callbackName] = (data) => {
-                    delete window[callbackName];
-                    document.body.removeChild(script);
-                    resolve(data);
-                };
-
-                const script = document.createElement('script');
-                script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + callbackName;
-                script.onerror = reject;
-                document.body.appendChild(script);
-            });
+            appContainer.classList.remove('hidden');
+            displayCurrentUser();
+            await fetchAndDisplayUsers();
+            setupEventListeners();
         }
 
-        signupForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitButton = signupForm.querySelector('button');
-            submitButton.disabled = true;
-            showStatus('Signing up...', 'info');
-            const formData = new FormData();
-            formData.append('type', 'signup');
-            formData.append('fullName', document.getElementById('signup-fullName').value);
-            formData.append('email', document.getElementById('signup-email').value);
-            formData.append('username', document.getElementById('signup-username').value);
-            formData.append('password', document.getElementById('signup-password').value);
-            formData.append('bio', document.getElementById('signup-bio').value);
-            formData.append('profilePicURL', document.getElementById('signup-profilePicURL').value);
-            
-            try {
-                const res = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
-                const result = await res.json();
-                if (result.status === 'success') {
-                    showStatus('Signup successful! Please login.', 'success');
-                    signupForm.reset();
-                    showPage('login-page');
-                } else { throw new Error(result.message); }
-            } catch (error) { 
-                showStatus(`Signup failed: ${error.message}`, 'error');
-            } finally {
-                submitButton.disabled = false;
-            }
-        });
-
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitButton = loginForm.querySelector('button');
-            submitButton.disabled = true;
-            showStatus('Logging in...', 'info');
-
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
-            
-            try {
-                const url = `${GOOGLE_SCRIPT_URL}?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
-                const result = await jsonpFetch(url);
-
-                if (result.status === 'success') {
-                    currentUser = username;
-                    sessionStorage.setItem('currentUser', currentUser);
-                    loginForm.reset();
-                    await initializeChatPage();
-                } else { 
-                    throw new Error(result.message); 
-                }
-            } catch (error) { 
-                showStatus(`Login failed: ${error.message}`, 'error');
-            } finally {
-                submitButton.disabled = false;
-            }
-        });
-
-        logoutButton.addEventListener('click', () => {
-            currentUser = null;
-            sessionStorage.removeItem('currentUser');
-            if (messageFetchInterval) clearInterval(messageFetchInterval);
-            currentUserProfile.classList.add('hidden');
-            currentUserPic.classList.add('hidden');
-            showPage('login-page');
-        });
-
-        async function initializeChatPage() {
-            showPage('chat-page');
-            showStatus('Loading user data...', 'info');
-            await populateUsersDropdown();
-            const userData = allUsers.find(u => u.Username === currentUser);
-            if (userData) {
-                currentUserName.textContent = userData.FullName;
-                currentUserPic.src = userData.ProfilePicURL || `https://placehold.co/40x40/e2e8f0/64748b?text=${userData.Username.charAt(0).toUpperCase()}`;
-                currentUserPic.onerror = () => { currentUserPic.src = `https://placehold.co/40x40/e2e8f0/64748b?text=${userData.Username.charAt(0).toUpperCase()}`; };
-                currentUserProfile.classList.remove('hidden');
-                currentUserPic.classList.remove('hidden');
-            }
-            showStatus('', 'info');
-        }
-
-        async function populateUsersDropdown() {
-            try {
-                const url = `${GOOGLE_SCRIPT_URL}?action=getUsers`;
-                const result = await jsonpFetch(url);
-                if (result.status === 'success') {
-                    allUsers = result.users;
-                    const otherUsers = allUsers.filter(user => user.Username && user.Username !== currentUser);
-                    usersDropdown.innerHTML = '';
-                    if (otherUsers.length > 0) {
-                        usersDropdown.innerHTML = '<option value="">Select a user...</option>';
-                        otherUsers.forEach(user => {
-                            const option = document.createElement('option');
-                            option.value = user.Username;
-                            option.textContent = `${user.FullName} (@${user.Username})`;
-                            usersDropdown.appendChild(option);
-                        });
-                    } else {
-                        usersDropdown.innerHTML = '<option value="">No other users to chat with</option>';
-                    }
-                } else { throw new Error(result.message); }
-            } catch (error) { showStatus(error.message, 'error'); }
-        }
-
-        usersDropdown.addEventListener('change', () => {
-            currentChatPartner = usersDropdown.value;
-            if (messageFetchInterval) clearInterval(messageFetchInterval);
-            if (currentChatPartner) {
-                const partnerData = allUsers.find(u => u.Username === currentChatPartner);
-                if (!partnerData) return;
-                chatPartnerPic.src = partnerData.ProfilePicURL || `https://placehold.co/40x40/e2e8f0/64748b?text=${partnerData.Username.charAt(0).toUpperCase()}`;
-                chatPartnerPic.onerror = () => { chatPartnerPic.src = `https://placehold.co/40x40/e2e8f0/64748b?text=${partnerData.Username.charAt(0).toUpperCase()}`; };
-                chatPartnerName.textContent = partnerData.FullName;
-                chatPartnerBio.textContent = partnerData.Bio;
-                chatPartnerProfile.classList.remove('invisible');
-                chatPlaceholder.classList.add('hidden');
-                messageInput.disabled = false;
-                messageForm.querySelector('button').disabled = false;
-                fetchMessages();
-                messageFetchInterval = setInterval(fetchMessages, 5000);
-            } else {
-                chatPartnerProfile.classList.add('invisible');
-                chatFeed.innerHTML = '';
-                chatPlaceholder.classList.remove('hidden');
-                messageInput.disabled = true;
-                messageForm.querySelector('button').disabled = true;
-            }
-        });
-
-        async function fetchMessages() {
-            if (!currentUser || !currentChatPartner) return;
-            try {
-                const url = `${GOOGLE_SCRIPT_URL}?action=getMessages&currentUser=${currentUser}&otherUser=${currentChatPartner}`;
-                const result = await jsonpFetch(url);
-                if (result.status === 'success') {
-                    displayMessages(result.messages);
-                } else { throw new Error(result.message); }
-            } catch (error) { console.error("Fetch message error:", error); }
-        }
-
-        function displayMessages(messages) {
-            chatFeed.innerHTML = '';
-            if (messages.length === 0) {
-                chatFeed.innerHTML = `<p class="text-center text-slate-400">No messages yet. Say hello!</p>`;
+        // --- Authentication ---
+        async function handleAuthentication() {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session) {
+                window.location.href = './login.html';
                 return;
             }
-            const currentUserData = allUsers.find(u => u.Username === currentUser);
-            const partnerUserData = allUsers.find(u => u.Username === currentChatPartner);
-            if (!currentUserData || !partnerUserData) return;
-            messages.forEach(msg => {
-                const isCurrentUser = msg.Sender === currentUser;
-                const senderData = isCurrentUser ? currentUserData : partnerUserData;
-                const profilePic = senderData.ProfilePicURL || `https://placehold.co/40x40/e2e8f0/64748b?text=${senderData.Username.charAt(0).toUpperCase()}`;
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `flex items-end gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''}`;
-                messageDiv.innerHTML = `<img src="${profilePic}" class="w-8 h-8 rounded-full bg-slate-200 object-cover" onerror="this.src='https://placehold.co/40x40/e2e8f0/64748b?text=${senderData.Username.charAt(0).toUpperCase()}'"><div class="max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${isCurrentUser ? 'bg-blue-500 text-white rounded-br-lg' : 'bg-slate-200 text-slate-800 rounded-bl-lg'}"><p>${msg.Message}</p></div>`;
-                chatFeed.appendChild(messageDiv);
-            });
-            chatFeed.scrollTop = chatFeed.scrollHeight;
+            const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('id, username, avatar_url')
+                .eq('id', session.user.id)
+                .single();
+            
+            if (profileError || !profile) {
+                console.error('Error fetching user profile:', profileError);
+                await supabase.auth.signOut();
+                window.location.href = './login.html';
+                return;
+            }
+            currentUser = profile;
         }
 
-        messageForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const message = messageInput.value.trim();
-            if (!message || !currentChatPartner) return;
-            const formData = new FormData();
-            formData.append('type', 'message');
-            formData.append('sender', currentUser);
-            formData.append('recipient', currentChatPartner);
-            formData.append('message', message);
-            try {
-                const res = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: formData });
-                const result = await res.json();
-                if (result.status === 'success') {
-                    messageInput.value = '';
-                    await fetchMessages();
-                } else { throw new Error(result.message); }
-            } catch (error) { showStatus(error.message, 'error'); }
-        });
-
-        function showStatus(message, type) {
-            statusMessage.textContent = message;
-            const colors = { success: 'text-green-600', error: 'text-red-600', info: 'text-slate-600' }
-            statusMessage.className = `text-center text-sm mt-4 h-5 font-medium ${colors[type] || 'text-slate-600'}`;
-            if(type !== 'info') { setTimeout(() => statusMessage.textContent = '', 4000); }
+        function displayCurrentUser() {
+            currentUsernameEl.textContent = `Logged in as ${currentUser.username}`;
         }
 
-        function onAppLoad() {
-            const loggedInUser = sessionStorage.getItem('currentUser');
-            if (loggedInUser) {
-                currentUser = loggedInUser;
-                initializeChatPage();
-            } else {
-                showPage('login-page');
+        // --- User Loading and Display ---
+        async function fetchAndDisplayUsers() {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('id, username, avatar_url')
+                .neq('id', currentUser.id); // Exclude the current user from the list
+
+            if (error) {
+                console.error('Error loading users:', error);
+                return;
+            }
+            allUsers = data;
+            displayUsers(allUsers);
+        }
+        
+        function displayUsers(users) {
+            userList.innerHTML = ''; // Clear existing list
+            for (const user of users) {
+                const userElement = document.createElement('div');
+                userElement.classList.add('user-item', 'flex', 'items-center', 'gap-4', 'p-4', 'cursor-pointer', 'hover:bg-slate-100');
+                userElement.dataset.userId = user.id;
+                userElement.innerHTML = `
+                    <div class="w-12 h-12 rounded-full bg-slate-300 flex-shrink-0 relative">
+                        <img src="${user.avatar_url || `https://placehold.co/100x100/E2E8F0/475569?text=${user.username.charAt(0).toUpperCase()}`}" alt="${user.username}" class="rounded-full w-full h-full">
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="font-semibold text-slate-800 truncate">${user.username}</p>
+                    </div>
+                `;
+                userElement.addEventListener('click', () => selectChatPartner(user));
+                userList.appendChild(userElement);
             }
         }
-        onAppLoad();
+
+        // --- Chat Logic ---
+        function selectChatPartner(user) {
+            currentChatPartner = user;
+            
+            document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.user-item[data-user-id='${user.id}']`).classList.add('active');
+
+            placeholderArea.classList.add('hidden');
+            chatArea.classList.remove('hidden');
+
+            chatHeader.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-slate-300 flex-shrink-0">
+                    <img src="${user.avatar_url || `https://placehold.co/100x100/A9C2BD/FFFFFF?text=${user.username.charAt(0).toUpperCase()}`}" alt="${user.username}" class="rounded-full w-full h-full">
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold">${user.username}</h1>
+                </div>
+            `;
+            loadMessages();
+        }
+
+        async function loadMessages() {
+            if (!currentChatPartner) return;
+            messagesContainer.innerHTML = 'Loading messages...';
+
+            const { data, error } = await supabase
+                .from('messages')
+                .select('*, sender:sender_id(username, avatar_url)')
+                .in('sender_id', [currentUser.id, currentChatPartner.id])
+                .in('receiver_id', [currentUser.id, currentChatPartner.id])
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                console.error('Error loading messages:', error);
+                messagesContainer.innerHTML = 'Could not load messages.';
+                return;
+            }
+
+            messagesContainer.innerHTML = '';
+            data.forEach(displayMessage);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            subscribeToMessages();
+        }
+
+        function displayMessage(message) {
+            const isOwnMessage = message.sender_id === currentUser.id;
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('flex', 'items-start', 'gap-3', isOwnMessage ? 'justify-end' : '');
+            
+            const senderUsername = isOwnMessage ? 'You' : currentChatPartner.username;
+            const senderAvatar = isOwnMessage 
+                ? (currentUser.avatar_url || `https://placehold.co/100x100/B6D0E2/FFFFFF?text=Y`) 
+                : (currentChatPartner.avatar_url || `https://placehold.co/100x100/A9C2BD/FFFFFF?text=${currentChatPartner.username.charAt(0).toUpperCase()}`);
+
+            messageDiv.innerHTML = `
+                ${!isOwnMessage ? `
+                <div class="w-10 h-10 rounded-full bg-slate-300 flex-shrink-0">
+                    <img src="${senderAvatar}" alt="${senderUsername}" class="rounded-full w-full h-full">
+                </div>` : ''}
+                <div>
+                    <p class="font-semibold text-slate-700 ${isOwnMessage ? 'text-right' : ''}">${senderUsername}</p>
+                    <div class="${isOwnMessage ? 'bg-blue-500 text-white' : 'bg-white'} p-3 rounded-lg mt-1 shadow-sm">
+                        <p class="text-slate-800 ${isOwnMessage ? 'text-white' : ''}">${message.content}</p>
+                    </div>
+                </div>
+                ${isOwnMessage ? `
+                <div class="w-10 h-10 rounded-full bg-blue-300 flex-shrink-0">
+                    <img src="${senderAvatar}" alt="${senderUsername}" class="rounded-full w-full h-full">
+                </div>` : ''}
+            `;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function handleSendMessage(event) {
+            event.preventDefault();
+            const content = messageInput.value.trim();
+            if (!content || !currentChatPartner) return;
+
+            const { error } = await supabase.from('messages').insert({
+                sender_id: currentUser.id,
+                receiver_id: currentChatPartner.id,
+                content: content
+            });
+
+            if (error) {
+                console.error('Error sending message:', error);
+            } else {
+                // Manually add the message to the UI for instant feedback
+                const sentMessage = {
+                    sender_id: currentUser.id,
+                    content: content,
+                    created_at: new Date().toISOString()
+                };
+                displayMessage(sentMessage);
+                messageInput.value = '';
+            }
+        }
+        
+        // --- Real-time Subscription ---
+        function subscribeToMessages() {
+            if (messageSubscription) {
+                supabase.removeChannel(messageSubscription);
+            }
+
+            messageSubscription = supabase
+                .channel(`messages_for_${currentUser.id}`)
+                .on('postgres_changes', { 
+                    event: 'INSERT', 
+                    schema: 'public', 
+                    table: 'messages',
+                    filter: `receiver_id=eq.${currentUser.id}`
+                }, payload => {
+                    if (currentChatPartner && payload.new.sender_id === currentChatPartner.id) {
+                        displayMessage(payload.new);
+                    }
+                })
+                .subscribe();
+        }
+        
+        // --- User Search ---
+        function handleUserSearch(event) {
+            const searchTerm = event.target.value.toLowerCase();
+            const filteredUsers = allUsers.filter(user => 
+                user.username.toLowerCase().includes(searchTerm)
+            );
+            displayUsers(filteredUsers);
+        }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            messageForm.addEventListener('submit', handleSendMessage);
+            logoutButton.addEventListener('click', async () => {
+                await supabase.auth.signOut();
+                window.location.href = './login.html';
+            });
+            searchInput.addEventListener('input', handleUserSearch);
+        }
+
+        // --- Run the app ---
+        main();
     </script>
 </body>
 </html>
