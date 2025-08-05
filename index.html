@@ -264,7 +264,7 @@
             if (placeholder) placeholder.remove();
 
             const messageDiv = document.createElement('div');
-            // *** BUG FIX: Conditionally add class to avoid empty token error ***
+            // *** BUG FIX: This is the corrected, safe way to add the class ***
             messageDiv.classList.add('flex', 'items-start', 'gap-3');
             if (isOwnMessage) {
                 messageDiv.classList.add('justify-end');
