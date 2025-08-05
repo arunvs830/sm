@@ -10,56 +10,65 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background: linear-gradient(to right, #f0f4f8, #d9e2ec);
         }
         #messages::-webkit-scrollbar,
         #user-list::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
         #messages::-webkit-scrollbar-track,
         #user-list::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: transparent;
         }
         #messages::-webkit-scrollbar-thumb,
         #user-list::-webkit-scrollbar-thumb {
-            background-color: #94a3b8;
+            background-color: #a0aec0;
             border-radius: 10px;
-            border: 3px solid #f1f5f9;
         }
         .user-item.active {
-            background-color: #e0f2fe; /* light-blue */
-            border-right: 4px solid #3b82f6; /* blue-500 */
+            background-color: #3b82f6; /* blue-600 */
+            color: white;
+        }
+        .user-item.active .truncate {
+            color: white;
+        }
+        .user-item.active .text-slate-500 {
+            color: #e2e8f0;
         }
     </style>
 </head>
-<body class="bg-gray-200">
+<body class="flex items-center justify-center h-screen p-4">
 
-    <div id="app-container" class="w-full h-screen flex bg-white shadow-2xl overflow-hidden hidden">
+    <div id="app-container" class="w-full max-w-6xl h-full flex bg-white/70 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden hidden">
         <!-- Sidebar with User List -->
-        <aside id="sidebar" class="w-full md:w-1/3 lg:w-1/4 flex flex-col bg-slate-50 border-r border-slate-200 md:flex">
+        <aside id="sidebar" class="w-full md:w-1/3 lg:w-1/4 flex flex-col bg-slate-100/80 border-r border-slate-200/80 md:flex">
             <!-- Sidebar Header -->
-            <header class="p-4 border-b border-slate-200">
+            <header class="p-4 border-b border-slate-200/80">
                 <div class="flex justify-between items-center">
                     <div>
                         <h2 class="text-xl font-bold text-slate-800">Chats</h2>
                         <p id="current-username" class="text-sm text-slate-500"></p>
                     </div>
-                    <button id="logout-button" class="text-slate-500 hover:text-blue-600" title="Logout">
+                    <button id="logout-button" class="text-slate-500 hover:text-red-500 transition-colors duration-200" title="Logout">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                     </button>
                 </div>
-                 <input type="text" id="search-users" placeholder="Search or start new chat..." class="w-full mt-3 p-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                 <div class="relative mt-4">
+                    <input type="text" id="search-users" placeholder="Search users..." class="w-full pl-10 pr-4 py-2 rounded-full bg-white border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
             </header>
             
             <!-- User List -->
-            <div id="user-list" class="flex-1 overflow-y-auto">
+            <div id="user-list" class="flex-1 overflow-y-auto p-2">
                 <!-- User items will be dynamically inserted here -->
             </div>
         </aside>
 
         <!-- Main Chat Container (for mobile and desktop) -->
-        <div id="chat-container" class="w-full flex-col bg-slate-100 hidden md:flex md:w-2/3 lg:w-3/4">
+        <div id="chat-container" class="w-full flex-col bg-white hidden md:flex md:w-2/3 lg:w-3/4">
              <!-- Chat Header -->
-            <header id="chat-header" class="bg-white text-slate-800 p-4 shadow-sm z-10 flex items-center gap-4">
+            <header id="chat-header" class="bg-white/80 backdrop-blur-sm text-slate-800 p-4 border-b border-slate-200/80 z-10 flex items-center gap-4">
                  <!-- Back button for mobile -->
                 <button id="back-button" class="md:hidden text-slate-500 hover:text-blue-600 mr-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -69,23 +78,23 @@
             </header>
 
             <!-- Messages Area -->
-            <main id="messages" class="flex-1 p-6 space-y-6 overflow-y-auto">
+            <main id="messages" class="flex-1 p-6 space-y-4 overflow-y-auto bg-slate-50">
                 <!-- Messages will be dynamically inserted here -->
             </main>
 
             <!-- Message Input Form -->
-            <footer class="bg-white p-4 border-t border-gray-200">
+            <footer class="bg-white/80 backdrop-blur-sm p-4 border-t border-gray-200/80">
                 <form id="message-form" class="flex items-center gap-4">
                     <input
                         id="message-input"
                         type="text"
-                        placeholder="Type your message..."
+                        placeholder="Type a message..."
                         autocomplete="off"
-                        class="flex-1 p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                        class="flex-1 px-5 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                     />
                     <button
                         type="submit"
-                        class="bg-blue-600 text-white rounded-full p-3 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-transform duration-150 ease-in-out transform hover:scale-105"
+                        class="bg-blue-600 text-white rounded-full p-3.5 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-transform duration-200 ease-in-out transform hover:scale-110"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                     </button>
@@ -94,11 +103,11 @@
         </div>
         
         <!-- Placeholder for when no chat is selected (Desktop only) -->
-        <div id="placeholder-area" class="w-full md:w-2/3 lg:w-3/4 hidden md:flex flex-col items-center justify-center bg-slate-100">
+        <div id="placeholder-area" class="w-full md:w-2/3 lg:w-3/4 hidden md:flex flex-col items-center justify-center bg-white">
              <div class="text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 mx-auto"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
-                <h2 class="mt-4 text-2xl font-semibold text-slate-600">Select a chat to start messaging</h2>
-                <p class="mt-2 text-slate-500">Your conversations will appear here.</p>
+                <svg class="w-24 h-24 text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                <h2 class="mt-6 text-2xl font-semibold text-slate-600">Your conversations live here</h2>
+                <p class="mt-2 text-slate-500">Select a chat from the sidebar to get started.</p>
             </div>
         </div>
     </div>
@@ -187,14 +196,15 @@
             userList.innerHTML = ''; 
             for (const user of users) {
                 const userElement = document.createElement('div');
-                userElement.classList.add('user-item', 'flex', 'items-center', 'gap-4', 'p-4', 'cursor-pointer', 'hover:bg-slate-100');
+                userElement.classList.add('user-item', 'flex', 'items-center', 'gap-4', 'p-3', 'cursor-pointer', 'hover:bg-slate-200/60', 'rounded-lg', 'transition-colors', 'duration-200');
                 userElement.dataset.userId = user.id;
                 userElement.innerHTML = `
                     <div class="w-12 h-12 rounded-full bg-slate-300 flex-shrink-0 relative">
-                        <img src="${user.avatar_url || `https://placehold.co/100x100/E2E8F0/475569?text=${user.username.charAt(0).toUpperCase()}`}" alt="${user.username}" class="rounded-full w-full h-full">
+                        <img src="${user.avatar_url || `https://placehold.co/100x100/E2E8F0/475569?text=${user.username.charAt(0).toUpperCase()}`}" alt="${user.username}" class="rounded-full w-full h-full object-cover">
                     </div>
                     <div class="flex-1 overflow-hidden">
                         <p class="font-semibold text-slate-800 truncate">${user.username}</p>
+                        <p class="text-sm text-slate-500 truncate">Start a conversation</p>
                     </div>
                 `;
                 userElement.addEventListener('click', () => selectChatPartner(user));
@@ -214,10 +224,11 @@
             
             chatPartnerInfo.innerHTML = `
                 <div class="w-10 h-10 rounded-full bg-slate-300 flex-shrink-0">
-                    <img src="${user.avatar_url || `https://placehold.co/100x100/A9C2BD/FFFFFF?text=${user.username.charAt(0).toUpperCase()}`}" alt="${user.username}" class="rounded-full w-full h-full">
+                    <img src="${user.avatar_url || `https://placehold.co/100x100/A9C2BD/FFFFFF?text=${user.username.charAt(0).toUpperCase()}`}" alt="${user.username}" class="rounded-full w-full h-full object-cover">
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold">${user.username}</h1>
+                    <h1 class="text-lg font-bold text-slate-900">${user.username}</h1>
+                    <p class="text-sm text-green-500">Online</p>
                 </div>
             `;
             
@@ -264,8 +275,7 @@
             if (placeholder) placeholder.remove();
 
             const messageDiv = document.createElement('div');
-            // *** BUG FIX: This is the corrected, safe way to add the class ***
-            messageDiv.classList.add('flex', 'items-start', 'gap-3');
+            messageDiv.classList.add('flex', 'items-end', 'gap-3');
             if (isOwnMessage) {
                 messageDiv.classList.add('justify-end');
             }
@@ -274,22 +284,21 @@
             const senderAvatar = isOwnMessage 
                 ? (currentUser.avatar_url || `https://placehold.co/100x100/B6D0E2/FFFFFF?text=Y`) 
                 : (currentChatPartner.avatar_url || `https://placehold.co/100x100/A9C2BD/FFFFFF?text=${currentChatPartner.username.charAt(0).toUpperCase()}`);
+            
+            const messageBubbleClasses = isOwnMessage 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-white text-slate-800';
 
             messageDiv.innerHTML = `
                 ${!isOwnMessage ? `
                 <div class="w-10 h-10 rounded-full bg-slate-300 flex-shrink-0">
-                    <img src="${senderAvatar}" alt="${senderUsername}" class="rounded-full w-full h-full">
+                    <img src="${senderAvatar}" alt="${senderUsername}" class="rounded-full w-full h-full object-cover">
                 </div>` : ''}
-                <div>
-                    <p class="font-semibold text-slate-700 ${isOwnMessage ? 'text-right' : ''}">${senderUsername}</p>
-                    <div class="${isOwnMessage ? 'bg-blue-500 text-white' : 'bg-white'} p-3 rounded-lg mt-1 shadow-sm max-w-xs md:max-w-md">
-                        <p class="${isOwnMessage ? 'text-white' : 'text-slate-800'} break-words">${message.content}</p>
+                <div class="max-w-xs md:max-w-md">
+                    <div class="${messageBubbleClasses} p-3 rounded-2xl shadow-sm">
+                        <p class="break-words">${message.content}</p>
                     </div>
                 </div>
-                ${isOwnMessage ? `
-                <div class="w-10 h-10 rounded-full bg-blue-300 flex-shrink-0">
-                    <img src="${senderAvatar}" alt="${senderUsername}" class="rounded-full w-full h-full">
-                </div>` : ''}
             `;
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
