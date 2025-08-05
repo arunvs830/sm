@@ -234,14 +234,15 @@
             if (!currentChatPartner) return;
             messagesContainer.innerHTML = '<p class="text-center text-slate-500">Loading messages...</p>';
 
+            // *** BUG FIX: Corrected the .or() filter syntax ***
             const { data, error } = await supabase
                 .from('messages')
                 .select(`*`)
-                .or(`(sender_id.eq.${currentUser.id},and(receiver_id.eq.${currentChatPartner.id})),(sender_id.eq.${currentChatPartner.id},and(receiver_id.eq.${currentUser.id}))`)
+                .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${currentChatPartner.id}),and(sender_id.eq.${currentChatPartner.id},receiver_id.eq.${currentUser.id})`)
                 .order('created_at', { ascending: true });
 
             if (error) {
-                console.error('Error loading messages:', error);
+                console.error('Error loading messages:', error.message);
                 messagesContainer.innerHTML = '<p class="text-center text-red-500">Could not load messages.</p>';
                 return;
             }
@@ -260,7 +261,6 @@
         function displayMessage(message) {
             const isOwnMessage = message.sender_id === currentUser.id;
             
-            // Clear the "No messages yet" placeholder if it exists
             const placeholder = messagesContainer.querySelector('p');
             if (placeholder) placeholder.remove();
 
