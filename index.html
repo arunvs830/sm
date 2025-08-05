@@ -219,11 +219,11 @@
             if (!currentChatPartner) return;
             messagesContainer.innerHTML = 'Loading messages...';
 
+            // *** BUG FIX: Correctly query for messages between two users ***
             const { data, error } = await supabase
                 .from('messages')
-                .select('*, sender:sender_id(username, avatar_url)')
-                .in('sender_id', [currentUser.id, currentChatPartner.id])
-                .in('receiver_id', [currentUser.id, currentChatPartner.id])
+                .select(`*, sender:sender_id(username)`)
+                .or(`(sender_id.eq.${currentUser.id},receiver_id.eq.${currentChatPartner.id}),(sender_id.eq.${currentChatPartner.id},receiver_id.eq.${currentUser.id})`)
                 .order('created_at', { ascending: true });
 
             if (error) {
@@ -257,7 +257,7 @@
                 <div>
                     <p class="font-semibold text-slate-700 ${isOwnMessage ? 'text-right' : ''}">${senderUsername}</p>
                     <div class="${isOwnMessage ? 'bg-blue-500 text-white' : 'bg-white'} p-3 rounded-lg mt-1 shadow-sm">
-                        <p class="text-slate-800 ${isOwnMessage ? 'text-white' : ''}">${message.content}</p>
+                        <p class="${isOwnMessage ? 'text-white' : 'text-slate-800'}">${message.content}</p>
                     </div>
                 </div>
                 ${isOwnMessage ? `
@@ -274,22 +274,16 @@
             const content = messageInput.value.trim();
             if (!content || !currentChatPartner) return;
 
-            const { error } = await supabase.from('messages').insert({
+            const { data, error } = await supabase.from('messages').insert({
                 sender_id: currentUser.id,
                 receiver_id: currentChatPartner.id,
                 content: content
-            });
+            }).select().single();
 
             if (error) {
                 console.error('Error sending message:', error);
             } else {
-                // Manually add the message to the UI for instant feedback
-                const sentMessage = {
-                    sender_id: currentUser.id,
-                    content: content,
-                    created_at: new Date().toISOString()
-                };
-                displayMessage(sentMessage);
+                displayMessage(data); // Display the message we just sent
                 messageInput.value = '';
             }
         }
