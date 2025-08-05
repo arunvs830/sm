@@ -234,7 +234,6 @@
             if (!currentChatPartner) return;
             messagesContainer.innerHTML = '<p class="text-center text-slate-500">Loading messages...</p>';
 
-            // *** BUG FIX: Corrected the .or() filter syntax ***
             const { data, error } = await supabase
                 .from('messages')
                 .select(`*`)
@@ -265,7 +264,11 @@
             if (placeholder) placeholder.remove();
 
             const messageDiv = document.createElement('div');
-            messageDiv.classList.add('flex', 'items-start', 'gap-3', isOwnMessage ? 'justify-end' : '');
+            // *** BUG FIX: Conditionally add class to avoid empty token error ***
+            messageDiv.classList.add('flex', 'items-start', 'gap-3');
+            if (isOwnMessage) {
+                messageDiv.classList.add('justify-end');
+            }
             
             const senderUsername = isOwnMessage ? 'You' : currentChatPartner.username;
             const senderAvatar = isOwnMessage 
